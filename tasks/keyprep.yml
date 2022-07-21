@@ -1,0 +1,34 @@
+
+- name: Create directory
+  become: yes
+  file:
+    path: "/root/.ssh"
+    state: directory
+- name: Generate /etc/ssh/ RSA host key
+  become: yes
+  openssh_keypair:
+    path: /root/.ssh/id_rsa
+    type: rsa
+#  command : echo -e 'y\n'|ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
+#  register: output
+#  when: ansible_hostname == 'ha01'
+  run_once: true
+#  ignore_errors: yes
+- debug: var=output.stdout_lines
+- name: Copy pub key to local
+  become: yes
+  fetch: 
+    src: /root/.ssh/id_rsa.pub
+    dest: /git/cephprep/files/
+#    when: ansible_hostname == 'ha01'
+  run_once: true
+#  ignore_errors: yes
+- name: Set authorized key took from file
+  become: yes
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', '/git/cephprep/files/ha01/root/.ssh/id_rsa.pub') }}"
+
+
+    

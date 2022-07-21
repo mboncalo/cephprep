@@ -1,0 +1,4 @@
+---
+ - hosts: ha01, ha02, ha03  
+   roles:
+   - cephprep

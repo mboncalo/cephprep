@@ -1,0 +1,6 @@
+- name: Set authorized key took from file
+  become: yes
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', '/git/cephprep/files/ha01/root/.ssh/id_rsa.pub') }}"

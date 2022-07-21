@@ -1,0 +1,13 @@
+- name: Ansible copy file to remote server
+  become: yes
+  copy:
+    src: /git/cephprep/files/bootstrap.sh
+    dest: /tmp/bootstrap.sh
+- name: Execute bootstrap script
+  become: yes
+  become_user: root
+  shell: bash /tmp/bootstrap.sh > /tmp/bootstrap.log
+  args:
+    creates: /etc/apt/keyrings/docker.gpg
+  ignore_unreachable: yes
+  ignore_errors: yes
