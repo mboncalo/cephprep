@@ -1,0 +1,29 @@
+
+- name: Create directory
+  become: yes
+  file:
+    path: "/root/.ssh"
+    state: directory
+- name: Generate /etc/ssh/ RSA host key
+  become: yes
+  openssh_keypair:
+    path: /root/.ssh/id_rsa
+    type: rsa
+  run_once: true
+  
+- debug: var=output.stdout_lines
+- name: Copy pub key to local
+  become: yes
+  fetch: 
+    src: /root/.ssh/id_rsa.pub
+    dest: /git/cephprep/files/
+  run_once: true
+- name: Set authorized key took from file
+  become: yes
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', '/git/cephprep/files/ha01/root/.ssh/id_rsa.pub') }}"
+
+
+    

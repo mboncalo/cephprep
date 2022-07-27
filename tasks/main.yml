@@ -1,0 +1,5 @@
+---
+# tasks file for cephprep
+- import_tasks: keyprep.yml
+#- import_tasks: keytransfer.yml
+- import_tasks: prepinstall.yml

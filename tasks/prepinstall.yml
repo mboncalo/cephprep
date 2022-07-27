@@ -1,0 +1,76 @@
+- name: Update cache repository
+  become: yes
+  apt:
+    update_cache: yes
+    force_apt_get: yes
+    cache_valid_time: 3600
+- name: Check if a reboot is needed on all servers
+  become: yes
+  register: reboot_required_file
+  stat:
+    path: /var/run/reboot-required
+    get_md5: no
+- name: Reboot the server if kernel updated
+  become: yes
+  reboot:
+    msg: "Reboot initiated by Ansible for kernel updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: uptime
+  when: reboot_required_file.stat.exists
+- name: Add Docker GPG apt Key
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker Repository
+  become: yes
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu focal stable
+    state: present
+- name: Add python Repository
+  become: yes
+  apt_repository:
+    repo: ppa:deadsnakes/ppa
+
+- name: Update apt and install docker-
+  become: yes
+  apt:
+    name: 
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+      - ntp
+      - python3-pip
+    state: latest
+    update_cache: true
+
+- name: Install Docker Module for Python
+  become: yes
+  pip:
+    name: docker
+- name: Ansible copy file to remote server
+  become: yes
+  copy:
+    src: /git/cephprep/files/bootstrap.sh
+    dest: /tmp/bootstrap.sh
+- name: Execute bootstrap script
+  become: yes
+  become_user: root
+  shell: bash /tmp/bootstrap.sh > /tmp/bootstrap.log
+  args:
+    creates: /etc/apt/keyrings/docker.gpg
+  ignore_unreachable: yes
+  ignore_errors: yes
+- name: Install cephadm on admin node
+  become: yes
+  ansible.builtin.apt:
+    name: cephadm
+    state: present
+- name: Set repository for latest cephversion
+  become: yes
+  shell: cephadm add-repo --release quincy
